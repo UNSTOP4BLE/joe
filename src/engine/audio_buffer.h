@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <vector>
 #include <SDL2/SDL_audio.h>
-#include "../main.h"
 
 namespace Audio {
 

@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <vorbis/vorbisfile.h>
-#include "../main.h"
 #include "audio_adpcm_decoder.h"
 #include "audio_buffer.h"
 

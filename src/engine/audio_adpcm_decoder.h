@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "../main.h"
 
 namespace Audio {
 

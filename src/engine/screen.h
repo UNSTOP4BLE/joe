@@ -1,5 +1,7 @@
 #pragma once
 
+#include "camera.h"
+
 class Screen {
 public:
     inline Screen(void) {}
