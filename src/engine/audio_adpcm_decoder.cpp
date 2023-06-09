@@ -49,7 +49,7 @@ int ADPCMDecoder::decode(int16_t *output, const uint8_t *input, int length, int 
             break;
         input += 2;
 
-        //ASSERTFUNC(filterIndex, "invalid filter index");
+        //assert(filterIndex, "invalid filter index");
         auto filter = ADPCM_FILTERS[filterIndex];
 
         for (int j = 0; j < 28; j++) {

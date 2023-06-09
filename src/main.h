@@ -1,8 +1,12 @@
 #pragma once
 
+#include "engine/audio_mixer.h"
+#include "engine/screen.h"
+
 class App {
 public:
-	Audio::AudioMixer audioMixer;
+    Audio::Mixer audioMixer;
+    Screen *screen;
 
 };
 

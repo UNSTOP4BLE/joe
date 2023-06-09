@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../main.h"
 #include "audio_buffer.h"
 #include "audio_file_readers.h"
 #include "audio_mixer.h"

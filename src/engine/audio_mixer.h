@@ -4,7 +4,6 @@
 #include <chrono>
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_mutex.h>
-#include "../main.h"
 #include "audio_buffer.h"
 
 namespace Audio {

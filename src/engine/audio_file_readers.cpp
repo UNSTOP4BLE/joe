@@ -3,7 +3,7 @@
 #include <cstring>
 #include <algorithm>
 #include <vorbis/vorbisfile.h>
-#include "../main.h"
+#include <cassert>
 #include "audio_file_readers.h"
 
 // Private stuff
@@ -24,23 +24,23 @@ static inline uint32_t _swapEndian(uint32_t value) {
 // THIS WILL BREAK ON BIG ENDIAN PLATFORMS (don't remove this warning)
 template<typename T> static inline T _readValue(FILE *fp) {
     T value;
-    ASSERTFUNC(fread(&value, sizeof(T), 1, fp), "file read failure");
+    assert(fread(&value, sizeof(T), 1, fp));
     return value;
 }
 
 template<typename T> static inline void _readValueInPlace(FILE *fp, T &value) {
-    ASSERTFUNC(fread(&value, sizeof(T), 1, fp), "file read failure");
+    assert(fread(&value, sizeof(T), 1, fp));
 }
 
 namespace Audio {
 
 WAVFileReader::WAVFileReader(const char *path) {
     _wavFile = fopen(path, "rb");
-    ASSERTFUNC(_wavFile, "failed to open WAV file");
+    (_wavFile);
 
-    ASSERTFUNC(_readValue<uint32_t>(_wavFile) == "RIFF"_m, "not a valid WAV file");
+    assert(_readValue<uint32_t>(_wavFile) == "RIFF"_m);
     _readValue<uint32_t>(_wavFile); //ignore total file size
-    ASSERTFUNC(_readValue<uint32_t>(_wavFile) == "WAVE"_m, "not a valid WAV file");
+    assert(_readValue<uint32_t>(_wavFile) == "WAVE"_m);
 
     while (!feof(_wavFile)) {
         auto chunkType = _readValue<uint32_t>(_wavFile);
@@ -51,7 +51,7 @@ WAVFileReader::WAVFileReader(const char *path) {
                 WAVFormatChunk fmt;
                 _readValueInPlace(_wavFile, fmt);
                 // 1 is int PCM, 3 is float PCM, 0x11 is ADPCM
-                ASSERTFUNC(fmt.format == 1, "WAV file is not PCM");
+                assert(fmt.format == 1);
 
                 channels = fmt.channels;
                 sampleRate = fmt.sampleRate;
@@ -73,7 +73,7 @@ WAVFileReader::WAVFileReader(const char *path) {
     }
 
     fclose(_wavFile);
-    ASSERTFUNC(false, "WAV file has missing chunks");
+    assert(false); //wav chunks missing
 }
 
 int WAVFileReader::getPosition(void) {
@@ -106,7 +106,7 @@ WAVFileReader::~WAVFileReader(void) {
 
 OGGFileReader::OGGFileReader(const char *path) {
     int error = ov_fopen(path, &_oggFile);
-    ASSERTFUNC(!error, "failed to open OGG file");
+    assert(!error);
 
     auto info = ov_info(&_oggFile, -1);
     totalNumSamples = ov_pcm_total(&_oggFile, -1);
@@ -121,14 +121,14 @@ OGGFileReader::OGGFileReader(const char *path) {
 
 int OGGFileReader::getPosition(void) {
     auto offset = ov_pcm_tell(&_oggFile);
-    ASSERTFUNC(offset != OV_EINVAL, "OGG seek error");
+    assert(offset != OV_EINVAL);
 
     return static_cast<int>(offset);
 }
 
 int OGGFileReader::setPosition(int sampleOffset) {
     int error = ov_pcm_seek(&_oggFile, sampleOffset);
-    ASSERTFUNC(!error, "OGG seek error");
+    assert(!error);
 
     return getPosition();
 }
@@ -146,7 +146,7 @@ int OGGFileReader::read(AudioBuffer &buf, int numSamples, int bufferOffset) {
     for (int actualNumSamples = 0; actualNumSamples < numSamples;) {
         int remaining = (numSamples - actualNumSamples) * bytesPerSample;
         int length = ov_read(&_oggFile, ptr, remaining, false, sizeof(int16_t), true, &_bitstreamIndex);
-        ASSERTFUNC(length >= 0, "OGG decode error");
+        assert(length >= 0);
 
         if (!length) { // End of file
             buf.data.resize((actualNumSamples + bufferOffset) * bytesPerSample);
@@ -166,7 +166,7 @@ OGGFileReader::~OGGFileReader(void) {
 
 VAGFileReader::VAGFileReader(const char *path) {
     _vagFile = fopen(path, "rb");
-    ASSERTFUNC(_vagFile, "failed to open VAG file");
+    assert(_vagFile);
 
     VAGHeader header;
     _readValueInPlace(_vagFile, header);
@@ -191,7 +191,7 @@ VAGFileReader::VAGFileReader(const char *path) {
 
         default:
             fclose(_vagFile);
-            ASSERTFUNC(false, "not a valid VAG file");
+            assert(false); //invalid vag
     }
 
     format = AUDIO_S16SYS;
@@ -233,7 +233,7 @@ int VAGFileReader::read(AudioBuffer &buf, int numSamples, int bufferOffset) {
 
         if (!_sampleBufferLength) {
             int length = fread(_chunkBuffer, 1, interleaveSize * channels, _vagFile);
-            ASSERTFUNC(length >= 0, "VAG read error");
+            assert(length >= 0);
 
             if (!length) { // End of file
                 buf.data.resize((actualNumSamples + bufferOffset) * bytesPerSample);
@@ -285,7 +285,7 @@ FileReader *openFile(const char *path) {
     if (!strcmp(ext, ".vag") || !strcmp(ext, ".vagi"))
         return (FileReader *) new VAGFileReader(path);
 
-    ASSERTFUNC(false, "unsupported audio file format");
+    assert(false); //unsupported format
     return nullptr;
 }
 

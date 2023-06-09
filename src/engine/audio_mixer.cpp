@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <chrono>
+#include <cassert>
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_mutex.h>
 #include "../main.h"
@@ -50,7 +51,7 @@ void MixerChannel::_open(SDL_AudioFormat format, int channels, int sampleRate, i
     );
 
     _mixer->_unlockCallback();
-    ASSERTFUNC(_stream, "failed to allocate audio stream");
+    assert(_stream);
 }
 
 int MixerChannel::_read(int16_t *data, int size) {
@@ -168,7 +169,7 @@ Mixer::Mixer(void)
         _channels[ch]._mixer = this;
 
     _sampleOffsetMutex = SDL_CreateMutex();
-    ASSERTFUNC(_sampleOffsetMutex, "failed to create mutex");
+    assert(_sampleOffsetMutex);
 }
 
 Mixer::~Mixer(void) {
@@ -220,7 +221,7 @@ void Mixer::_process(int16_t *output, int numSamples) {
     }
 }
 void Mixer::start(int sampleRate, int bufferSize) {
-    ASSERTFUNC(bufferSize <= MIXER_BUFFER_SIZE, "unsupported buffer size");
+    assert(bufferSize <= MIXER_BUFFER_SIZE);
 
     SDL_AudioSpec actualSpec;
     SDL_AudioSpec spec{
@@ -241,7 +242,7 @@ void Mixer::start(int sampleRate, int bufferSize) {
         nullptr, false, &spec, &actualSpec,
         SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE
     );
-    ASSERTFUNC(_outputStream, "failed to initialize audio device");
+    assert(_outputStream);
 
     _sampleRate = actualSpec.freq; // May have been changed by SDL
     _sampleOffset = -(2 * bufferSize); // See note

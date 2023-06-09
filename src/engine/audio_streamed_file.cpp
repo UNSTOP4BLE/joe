@@ -1,6 +1,6 @@
 
 #include <algorithm>
-#include "../main.h"
+#include <cassert>
 #include "audio_streamed_file.h"
 
 namespace Audio {
@@ -8,10 +8,10 @@ namespace Audio {
 StreamedFile::StreamedFile(Mixer &mixer, const char *path)
 : _playing(false), _loopOffset(-1) {
     _reader = openFile(path);
-    ASSERTFUNC(_reader, "failed to open audio file");
+    assert(_reader);
 
     _channel = mixer.openChannel(_reader->format, _reader->channels, _reader->sampleRate);
-    ASSERTFUNC(_channel, "no mixer channels available to play stream");
+    assert(_channel);
 }
 
 /*
